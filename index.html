@@ -2,146 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login | Spark Universe 🔐</title>
+  <title>SparkLogin v3.0 🔐</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #ffe1f3, #d2ecff);
-      text-align: center;
-      padding: 60px;
+      background: #f0f4ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-    h1, h2 {
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+    h2 {
       margin-bottom: 20px;
+      color: #333;
     }
-    input {
-      padding: 10px;
-      margin: 10px;
-      width: 260px;
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
       border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 1em;
+    }
+    label {
+      float: left;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+    .toggle-btn {
+      float: right;
+      margin-top: -34px;
+      margin-right: 10px;
+      cursor: pointer;
+      color: #555;
+      font-size: 0.9em;
     }
     button {
-      padding: 10px 30px;
-      font-size: 1em;
-      border: none;
-      border-radius: 10px;
-      background-color: #6c63ff;
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #6c63ff;
       color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
       cursor: pointer;
     }
-    .link-btn {
-      margin-top: 10px;
+    .switch-link {
+      margin-top: 15px;
+      text-align: center;
       color: #6c63ff;
-      text-decoration: underline;
       cursor: pointer;
+      font-size: 0.95em;
+      text-decoration: underline;
     }
-    #message {
+    .message {
       margin-top: 10px;
       color: red;
+      font-size: 0.9em;
     }
-    #dashboard, #loginForm, #signupForm {
-      display: none;
-      margin-top: 40px;
+    .success {
+      color: green;
+    }
+    .centered {
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-  <h1>🔐 Welcome to SparkLogin v2.5</h1>
-
-  <div id="mainMenu">
-    <button onclick="showLogin()">Log In</button>
-    <button onclick="showSignup()">Sign Up</button>
-  </div>
-
-  <!-- LOGIN FORM -->
-  <div id="loginForm">
-    <h2>Log In</h2>
-    <input type="email" id="loginEmail" placeholder="Email"><br>
-    <input type="password" id="loginPassword" placeholder="Password"><br>
+  <div class="container" id="loginForm">
+    <h2>🔐 Log In</h2>
+    <label>Email</label>
+    <input type="email" id="loginEmail" placeholder="Enter your email" />
+    <label>Password</label>
+    <input type="password" id="loginPassword" placeholder="Enter your password" />
+    <span class="toggle-btn" onclick="togglePassword('loginPassword')">👁 Show</span>
     <button onclick="login()">Log In</button>
-    <p id="loginMessage"></p>
-    <p class="link-btn" onclick="showSignup()">Don't have an account? Sign up</p>
+    <div class="message" id="loginMessage"></div>
+    <div class="switch-link" onclick="switchToSignup()">Don't have an account? Sign Up</div>
   </div>
 
-  <!-- SIGNUP FORM -->
-  <div id="signupForm">
-    <h2>Sign Up</h2>
-    <input type="text" id="signupUsername" placeholder="Username"><br>
-    <input type="email" id="signupEmail" placeholder="Email"><br>
-    <input type="password" id="signupPassword" placeholder="Strong Password"><br>
-    <button onclick="signup()">Create Account</button>
-    <p id="signupMessage"></p>
-    <p class="link-btn" onclick="showLogin()">Already have an account? Log in</p>
+  <div class="container" id="signupForm" style="display: none;">
+    <h2>✨ Sign Up</h2>
+    <label>Email</label>
+    <input type="email" id="signupEmail" placeholder="Enter your email" />
+    <label>Password</label>
+    <input type="password" id="signupPassword" placeholder="Create a strong password" />
+    <span class="toggle-btn" onclick="togglePassword('signupPassword')">👁 Show</span>
+    <button onclick="signup()">Sign Up</button>
+    <div class="message" id="signupMessage"></div>
+    <div class="switch-link" onclick="switchToLogin()">Already have an account? Log In</div>
   </div>
 
-  <div id="dashboard">
-    <h2>✨ Welcome, <span id="currentUser"></span>!</h2>
-    <p>Redirecting to your app... 🚀</p>
+  <div class="container centered" id="redirectScreen" style="display: none;">
+    <h2>Welcome back!</h2>
+    <p>✅ Logged in as: <b id="userEmail"></b></p>
+    <p>Redirecting you back to your app... 🔁</p>
   </div>
 
   <script>
-    const getRedirectApp = () => {
-      const url = new URL(window.location.href);
-      return url.searchParams.get("redirect") || "";
-    };
+    const REDIRECT_BASE = "https://starryexplorers.github.io/";
 
-    function showLogin() {
-      document.getElementById("signupForm").style.display = "none";
-      document.getElementById("dashboard").style.display = "none";
-      document.getElementById("loginForm").style.display = "block";
-      document.getElementById("mainMenu").style.display = "none";
-    }
-
-    function showSignup() {
+    function switchToSignup() {
       document.getElementById("loginForm").style.display = "none";
-      document.getElementById("dashboard").style.display = "none";
       document.getElementById("signupForm").style.display = "block";
-      document.getElementById("mainMenu").style.display = "none";
     }
 
-    function showDashboard(user) {
-      document.getElementById("dashboard").style.display = "block";
-      document.getElementById("loginForm").style.display = "none";
+    function switchToLogin() {
       document.getElementById("signupForm").style.display = "none";
-      document.getElementById("mainMenu").style.display = "none";
-      document.getElementById("currentUser").innerText = user;
+      document.getElementById("loginForm").style.display = "block";
+    }
+
+    function togglePassword(id) {
+      const input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+      } else {
+        input.type = "password";
+      }
+    }
+
+    function isEmailValid(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function isStrongPassword(pass) {
+      return (
+        pass.length >= 8 &&
+        /[a-z]/.test(pass) &&
+        /[A-Z]/.test(pass) &&
+        /[0-9]/.test(pass)
+      );
     }
 
     function signup() {
-      const username = document.getElementById("signupUsername").value.trim();
       const email = document.getElementById("signupEmail").value.trim().toLowerCase();
       const password = document.getElementById("signupPassword").value;
       const msg = document.getElementById("signupMessage");
 
-      if (username.length < 3) {
-        msg.innerText = "⚠️ Username must be at least 3 characters.";
+      if (!isEmailValid(email)) {
+        msg.innerText = "⚠️ Enter a valid email address.";
         return;
       }
-
-      if (!email.includes("@") || !email.includes(".")) {
-        msg.innerText = "⚠️ Invalid email address.";
-        return;
-      }
-
-      if (!isStrong(password)) {
-        msg.innerText = "⚠️ Password must be 8+ characters, include uppercase, lowercase, and a number.";
+      if (!isStrongPassword(password)) {
+        msg.innerText = "⚠️ Password must be 8+ characters, with uppercase, lowercase, and a number.";
         return;
       }
 
       let users = JSON.parse(localStorage.getItem("sparkUsers") || "{}");
 
       if (users[email]) {
-        msg.innerText = "❌ An account with this email already exists!";
+        msg.innerText = "❌ Account already exists with that email!";
         return;
       }
 
-      users[email] = { username, password };
+      users[email] = { password };
       localStorage.setItem("sparkUsers", JSON.stringify(users));
-      msg.style.color = "green";
-      msg.innerText = "✅ Account created! Now log in.";
-      showLogin();
+      msg.classList.add("success");
+      msg.innerText = "✅ Account created! You can now log in.";
+      setTimeout(() => switchToLogin(), 1200);
     }
 
     function login() {
@@ -149,46 +182,48 @@
       const password = document.getElementById("loginPassword").value;
       const msg = document.getElementById("loginMessage");
 
+      if (!isEmailValid(email)) {
+        msg.innerText = "⚠️ Please enter a valid email.";
+        return;
+      }
+
       let users = JSON.parse(localStorage.getItem("sparkUsers") || "{}");
 
-      if (users[email] && users[email].password === password) {
-        localStorage.setItem("loggedInUser", users[email].username);
-        showDashboard(users[email].username);
+      if (!users[email] || users[email].password !== password) {
+        msg.innerText = "❌ Incorrect email or password!";
+        return;
+      }
+
+      // Logged in!
+      localStorage.setItem("loggedInUser", email);
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("redirectScreen").style.display = "block";
+      document.getElementById("userEmail").innerText = email;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get("redirect") || "";
+
+      setTimeout(() => {
+        window.location.href = REDIRECT_BASE + redirect + "/";
+      }, 2000);
+    }
+
+    window.onload = function () {
+      const loggedIn = localStorage.getItem("loggedInUser");
+      if (loggedIn) {
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("redirectScreen").style.display = "block";
+        document.getElementById("userEmail").innerText = loggedIn;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect") || "";
 
         setTimeout(() => {
-          const app = getRedirectApp();
-          if (app) {
-            window.location.href = "https://starryexplorers.github.io/" + app + "/";
-          }
-        }, 1500);
-      } else {
-        msg.innerText = "❌ Incorrect email or password!";
-      }
-    }
-
-    function isStrong(pass) {
-      return (
-        pass.length >= 8 &&
-        /[A-Z]/.test(pass) &&
-        /[a-z]/.test(pass) &&
-        /[0-9]/.test(pass)
-      );
-    }
-
-    // Optional: auto login
-    window.onload = function () {
-      const user = localStorage.getItem("loggedInUser");
-      if (user) {
-        showDashboard(user);
-        const app = getRedirectApp();
-        if (app) {
-          setTimeout(() => {
-            window.location.href = "https://starryexplorers.github.io/" + app + "/";
-          }, 1500);
-        }
+          window.location.href = REDIRECT_BASE + redirect + "/";
+        }, 2000);
       }
     };
   </script>
 
 </body>
-      </html>
+</html>
