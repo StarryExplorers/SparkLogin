@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SparkLogin v2.0 🔐</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ffe1f3, #d2ecff);
+      text-align: center;
+      padding: 50px;
+    }
+    h1, h2 {
+      margin-bottom: 20px;
+    }
+    input {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+    button {
+      padding: 10px 30px;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      background-color: #6c63ff;
+      color: white;
+      cursor: pointer;
+    }
+    #message {
+      margin-top: 10px;
+      color: red;
+    }
+    #dashboard, #loginForm, #signupForm {
+      display: none;
+      margin-top: 40px;
+    }
+    a {
+      display: block;
+      margin: 10px;
+      font-size: 1.1em;
+      color: #333;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+      color: #6c63ff;
+    }
+    .link-btn {
+      color: #6c63ff;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #logoutBtn {
+      margin-top: 20px;
+      background-color: #ff5c5c;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔐 Welcome to SparkLogin v2.0</h1>
+
+  <div id="mainMenu">
+    <button onclick="showLogin()">Log In</button>
+    <button onclick="showSignup()">Sign Up</button>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div id="loginForm">
+    <h2>Log In</h2>
+    <input type="text" id="loginUsername" placeholder="Username"><br>
+    <input type="password" id="loginPassword" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <p id="loginMessage"></p>
+    <p class="link-btn" onclick="showSignup()">Don't have an account? Sign up</p>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="signupForm">
+    <h2>Sign Up</h2>
+    <input type="text" id="signupUsername" placeholder="Choose a username"><br>
+    <input type="password" id="signupPassword" placeholder="Choose a strong password"><br>
+    <button onclick="signup()">Create Account</button>
+    <p id="signupMessage"></p>
+    <p class="link-btn" onclick="showLogin()">Already have an account? Log in</p>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <h2>✨ Welcome, <span id="currentUser"></span>!</h2>
+    <p>Choose your app below:</p>
+    <a href="https://starryexplorers.github.io/RePix" target="_blank">🎨 RePix</a>
+    <a href="https://starryexplorers.github.io/Talking-Calculator" target="_blank">🗣️ Talking Calculator</a>
+    <a href="https://starryexplorers.github.io/Spark-App-Hub" target="_blank">📦 Spark App Hub</a>
+    <a href="https://starryexplorers.github.io/Temperature-Converter" target="_blank">🌡️ Temperature Converter</a>
+    <button id="logoutBtn" onclick="logout()">🚪 Log Out</button>
+  </div>
+
+  <script>
+    // Show/Hide sections
+    function showLogin() {
+      document.getElementById("signupForm").style.display = "none";
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("loginForm").style.display = "block";
+      document.getElementById("mainMenu").style.display = "none";
+    }
+
+    function showSignup() {
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("signupForm").style.display = "block";
+      document.getElementById("mainMenu").style.display = "none";
+    }
+
+    function showDashboard(username) {
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("signupForm").style.display = "none";
+      document.getElementById("mainMenu").style.display = "none";
+      document.getElementById("currentUser").innerText = username;
+    }
+
+    // Check for stored login
+    window.onload = function () {
+      const loggedInUser = localStorage.getItem("loggedInUser");
+      if (loggedInUser) {
+        showDashboard(loggedInUser);
+      }
+    };
+
+    function signup() {
+      const username = document.getElementById("signupUsername").value.trim().toLowerCase();
+      const password = document.getElementById("signupPassword").value;
+      const message = document.getElementById("signupMessage");
+
+      if (username.length < 3) {
+        message.innerText = "⚠️ Username must be at least 3 characters.";
+        return;
+      }
+
+      if (!isStrong(password)) {
+        message.innerText = "⚠️ Password must be 8+ characters, include uppercase, lowercase, and a number.";
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem("sparkUsers") || "{}");
+
+      if (users[username]) {
+        message.innerText = "❌ That username is already taken!";
+        return;
+      }
+
+      users[username] = password;
+      localStorage.setItem("sparkUsers", JSON.stringify(users));
+      message.style.color = "green";
+      message.innerText = "✅ Account created! Now you can log in.";
+      showLogin();
+    }
+
+    function login() {
+      const username = document.getElementById("loginUsername").value.trim().toLowerCase();
+      const password = document.getElementById("loginPassword").value;
+      const message = document.getElementById("loginMessage");
+
+      let users = JSON.parse(localStorage.getItem("sparkUsers") || "{}");
+
+      if (users[username] && users[username] === password) {
+        localStorage.setItem("loggedInUser", username);
+        showDashboard(username);
+      } else {
+        message.innerText = "❌ Incorrect username or password!";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      document.getElementById("dashboard").style.display = "none";
+      document.getElementById("mainMenu").style.display = "block";
+    }
+
+    function isStrong(pass) {
+      return (
+        pass.length >= 8 &&
+        /[A-Z]/.test(pass) &&
+        /[a-z]/.test(pass) &&
+        /[0-9]/.test(pass)
+      );
+    }
+  </script>
+
+</body>
+</html>
